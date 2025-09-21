@@ -1,0 +1,19 @@
+# 2. Criar ambiente virtual
+python -m venv venv
+
+# Ativar ambiente virtual
+venv\Scripts\activate
+
+# Executar script
+python databricks_uploader.py
+
+# Desativar quando terminar
+deactivate
+
+
+
+DOT ENV (.env):
+
+echo DATABASE_URL= >> .env
+echo SECRET_KEY= >> .env
+echo DEBUG=true >> .env
