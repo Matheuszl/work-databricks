@@ -15,6 +15,7 @@ load_dotenv()
 DATABRICKS_INSTANCE = os.getenv("DATABRICKS_HOST")  # coloque sua URL no .env
 DATABRICKS_TOKEN = os.getenv("DATABRICKS_TOKEN")  # coloque seu token no .env
 JOB_ID = os.getenv("DATABRICKS_ID_JOB")
+PATH_EXCEL = os.getenv("PATH_EXCEL")
 
 def processar_arquivo_excel(caminho_arquivo):
     """
@@ -115,49 +116,6 @@ def limpar_dados(df):
         print(f"Erro durante a limpeza dos dados: {str(e)}")
         return df
 
-
-def verificar_arquivo(caminho_arquivo):
-    """
-    Verifica se o arquivo existe e fornece informações sobre o problema
-    """
-    import os
-    
-    print(f"🔍 Verificando arquivo: {caminho_arquivo}")
-    
-    # Verifica se o arquivo existe
-    if os.path.exists(caminho_arquivo):
-        print("✅ Arquivo encontrado!")
-        return True
-    else:
-        print("❌ Arquivo não encontrado!")
-        
-        # Verifica se o diretório existe
-        diretorio = os.path.dirname(caminho_arquivo)
-        if os.path.exists(diretorio):
-            print(f"📁 Diretório existe: {diretorio}")
-            print("📋 Arquivos no diretório:")
-            try:
-                arquivos = os.listdir(diretorio)
-                for arquivo in arquivos:
-                    if arquivo.endswith(('.xlsx', '.xls')):
-                        print(f"   📄 {arquivo}")
-                if not any(arquivo.endswith(('.xlsx', '.xls')) for arquivo in arquivos):
-                    print("   ⚠️ Nenhum arquivo Excel encontrado neste diretório")
-            except PermissionError:
-                print("   ❌ Sem permissão para listar arquivos do diretório")
-        else:
-            print(f"❌ Diretório não existe: {diretorio}")
-            
-            # Sugere diretórios alternativos
-            partes_caminho = caminho_arquivo.split('/')
-            for i in range(len(partes_caminho) - 1, 0, -1):
-                caminho_parcial = '/'.join(partes_caminho[:i])
-                if os.path.exists(caminho_parcial):
-                    print(f"✅ Diretório pai existe: {caminho_parcial}")
-                    break
-        
-        return False
-
 def enviar_databricks(df):
     url = f"{DATABRICKS_INSTANCE}/api/2.1/jobs/run-now"
     
@@ -183,57 +141,10 @@ def enviar_databricks(df):
     else:
         print("Erro ao enviar:", response.status_code, response.text)
 
-def processar_arquivo_unico(caminho_arquivo, enviar_para_databricks=False):
-    """
-    Processa um único arquivo Excel
-    """
-    print(f"🔄 Processando arquivo: {os.path.basename(caminho_arquivo)}")
-    
-    if not verificar_arquivo(caminho_arquivo):
-        return None
-    
-    df_limpo = processar_arquivo_excel(caminho_arquivo)
-    
-    if df_limpo is not None:
-        print(f"✅ Arquivo processado com sucesso! {len(df_limpo)} registros")
-        
-        if enviar_para_databricks:
-            enviar_databricks(df_limpo)
-        
-        return df_limpo
-    else:
-        print("❌ Falha no processamento do arquivo.")
-        return None
 
-
-""" 
-    - Interface de linha de comando para processar arquivos ou pastas
-    - Exemplo de uso:
-        python etl.py --modo arquivo --caminho caminho/para/arquivo.xlsx
-
-    - python etl.py --modo arquivo --caminho "C:/Users/mathe/Desktop/Banco de Dados/ContaCorrente/abril22.xls"
-    
-    Executando o modo arquivo é só alterar o nome do arquivo se ele existir na pasta.
-"""
-def main():
-    parser = argparse.ArgumentParser(description="Processamento de arquivos de conta corrente")
-    parser.add_argument(
-        "--modo",
-        choices=["arquivo"],
-        required=True,
-        help="Escolha se deseja processar um único arquivo ou uma pasta inteira"
-    )
-    parser.add_argument(
-        "--caminho",
-        required=True,
-        help="Caminho do arquivo ou da pasta"
-    )
-    args = parser.parse_args()
-
-    if args.modo == "arquivo":
-        print(f"Processando arquivo único: {args.caminho}")
-        processar_arquivo_unico(args.caminho, enviar_para_databricks=True)
 
 
 if __name__ == "__main__":
-    main()
+    print("Iniciando o processamento do arquivo Excel...")
+    df = processar_arquivo_excel(PATH_EXCEL)
+    enviar_databricks(df)

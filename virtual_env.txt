@@ -1,16 +1,23 @@
-# 2. Criar ambiente virtual
+Criar ambiente virtual
 python -m venv venv
 
-# Ativar ambiente virtual
+Ativar ambiente virtual
 venv\Scripts\activate
 
-# Executar script
+Executar script
 python databricks_uploader.py
 
-# Desativar quando terminar
+Desativar quando terminar
 deactivate
 
+----------------------------------------------------------
 
+Executar Fast API:
+uvicorn app:app --reload
+
+----------------------------------------------------------
+
+Crie um arquivo .env:
 
 DOT ENV (.env):
 

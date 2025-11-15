@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+architecture.excalidraw
+features.txt
+virtual_env.txt
+
 # C extensions
 *.so
 

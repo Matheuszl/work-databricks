@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analista Financeiro</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --outgoing-bubble-bg: #dcf8c6;
+            --incoming-bubble-bg: #ffffff;
+            --background-color: #e5ddd5;
+            --header-bg: #ededed;
+            --text-primary: #000;
+            --text-secondary: #54656f;
+            --icon-color: #54656f;
+            --app-bg: #f0f2f5;
+            --whatsapp-green: #075e54;
+            --whatsapp-teal: #128c7e;
+            --chat-border: #e1e1e1;
+            --shadow: 0 1px 1px 0 rgba(11, 20, 26, .1);
+            --radius: 7.5px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--app-bg);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            height: 100%;
+            max-width: 1600px;
+            max-height: 100vh;
+            display: flex;
+            box-shadow: 0 1px 1px 0 rgba(0, 0, 0, .06), 0 2px 5px 0 rgba(0, 0, 0, .2);
+        }
+
+        .chat-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+            background-repeat: repeat;
+            background-color: var(--background-color);
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            background-color: var(--header-bg);
+            border-left: 1px solid var(--chat-border);
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--whatsapp-green);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+
+        .avatar svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .chat-info h1 {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .chat-info p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .header-actions {
+            margin-left: auto;
+        }
+
+        .theme-toggle-btn {
+            background: none;
+            border: none;
+            color: var(--icon-color);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle-btn:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .theme-toggle-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .chat-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 5%;
+        }
+
+        .chat-messages {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 8px 12px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+
+        .message.message-user {
+            background-color: var(--outgoing-bubble-bg);
+            align-self: flex-end;
+        }
+
+        .message.message-assistant {
+            background-color: var(--incoming-bubble-bg);
+            align-self: flex-start;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message p {
+            line-height: 1.4;
+            font-size: 14.2px;
+            white-space: pre-wrap;
+        }
+
+        .content-block {
+            border-top: 1px solid #f0f0f0;
+            padding-top: 10px;
+        }
+
+        .content-block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .content-block-header h4 {
+            font-size: 14px;
+            color: var(--whatsapp-teal);
+            font-weight: 600;
+        }
+
+        .content-action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--icon-color);
+            padding: 4px;
+        }
+
+        .content-action-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .content-action-btn:hover {
+            color: var(--whatsapp-teal);
+        }
+
+        .sql-container {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: var(--radius);
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .data-table-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .data-table th,
+        .data-table td {
+            border: 1px solid #e2e2e2;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .data-table th {
+            background-color: #f7f7f7;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            height: 350px;
+        }
+
+        .chat-input-area {
+            padding: 10px 16px;
+            background-color: var(--header-bg);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 15px;
+            font-size: 15px;
+            resize: none;
+            outline: none;
+            max-height: 100px;
+        }
+
+        .send-button {
+            background-color: var(--whatsapp-teal);
+            border: none;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .send-button svg {
+            fill: white;
+        }
+
+        .send-button:hover {
+            background-color: var(--whatsapp-green);
+        }
+
+        .loading-indicator {
+            font-style: italic;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* === DARK MODE STYLES === */
+        body.dark-mode {
+            --outgoing-bubble-bg: #005c4b;
+            --incoming-bubble-bg: #202c33;
+            --background-color: #0b141a;
+            --header-bg: #202c33;
+            --text-primary: #e9edef;
+            --text-secondary: #8696a0;
+            --icon-color: #aebac1;
+            --app-bg: #111b21;
+            --chat-border: #2f3b44;
+            --whatsapp-teal: #00a884;
+        }
+
+        body.dark-mode .chat-panel {
+            background-image: none;
+            background-color: var(--background-color);
+        }
+
+        body.dark-mode .chat-input {
+            background-color: #2a3942;
+            color: var(--text-primary);
+        }
+
+        body.dark-mode .data-table th {
+            background-color: #2a3942;
+        }
+
+        body.dark-mode .data-table tr:nth-child(even) {
+            background-color: #222e35;
+        }
+
+        body.dark-mode .data-table,
+        body.dark-mode .data-table th,
+        body.dark-mode .data-table td {
+            border-color: #333f48;
+        }
+
+        body.dark-mode .content-block {
+            border-top-color: #2a3942;
+        }
+
+        body.dark-mode .theme-toggle-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+
+        /* ========================================= */
+        /* === ESTILOS PARA DISPOSITIVOS MÓVEIS === */
+        /* ========================================= */
+        @media (max-width: 600px) {
+            body {
+                /* Remove o alinhamento central em telas pequenas */
+                display: block;
+            }
+
+            .app-container {
+                /* Faz o app ocupar 100% da tela, sem sombra ou bordas */
+                width: 100%;
+                height: 100vh;
+                max-width: 100%;
+                /* max-height: 100vh; */
+                min-height: 100vh;
+                box-shadow: none;
+            }
+
+            .chat-body {
+                /* Reduz o preenchimento lateral para dar mais espaço */
+                padding: 15px;
+            }
+
+            .message {
+                /* Permite que as mensagens ocupem mais espaço na horizontal */
+                max-width: 85%;
+            }
+
+            .chat-header,
+            .chat-input-area {
+                /* Reduz o preenchimento do cabeçalho e rodapé */
+                padding: 8px 10px;
+            }
+
+            .chat-info h1 {
+                font-size: 15px;
+            }
+
+            .chat-info p {
+                font-size: 12px;
+            }
+
+            .chat-input {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+        }
+
+
+        /* Adicione este CSS */
+        .account-selector-wrapper {
+            margin-left: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .account-selector-wrapper label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 2px;
+        }
+
+        .account-selector {
+            background-color: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            padding: 4px 6px;
+            font-size: 13px;
+            color: var(--text-primary);
+            outline: none;
+        }
+
+        /* Estilos para o Dark Mode */
+        body.dark-mode .account-selector {
+            background-color: #2a3942;
+            border-color: #3e4a54;
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div class="chat-panel">
+            <header class="chat-header">
+                <div class="avatar">
+                    <svg viewBox="0 0 24 24">
+                        <path fill="currentColor"
+                            d="M12,12.5A3.5,3.5 0 0,0 15.5,9A3.5,3.5 0 0,0 12,5.5A3.5,3.5 0 0,0 8.5,9A3.5,3.5 0 0,0 12,12.5M12,14.5C9.67,14.5 5,15.67 5,18V20H19V18C19,15.67 14.33,14.5 12,14.5Z" />
+                    </svg>
+                </div>
+                <div class="chat-info">
+                    <h1>Analista Financeiro</h1>
+                    <p>online</p>
+                </div>
+
+                <div class="account-selector-wrapper">
+                    <label for="account-selector">Fonte de Dados:</label>
+                    <select id="account-selector" class="account-selector">
+                        <option value="conta-corrente">Conta Corrente</option>
+                        <option value="vale-alimentacao" selected>Vale Alimentação</option>
+                        <option value="cartao-credito">Cartão de Crédito</option>
+                    </select>
+                </div>
+
+                <div class="header-actions">
+                    <button id="theme-toggle" class="theme-toggle-btn" title="Alternar tema"></button>
+                </div>
+            </header>
+
+            <div class="chat-body">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message message-assistant">
+                        <p>Olá! Sou seu analista financeiro. Faça uma pergunta para começar.</p>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="chat-input-area">
+                <textarea id="userQuestion" class="chat-input" placeholder="Digite uma mensagem" rows="1"
+                    onkeydown="handleKeyPress(event)"></textarea>
+                <button class="send-button" onclick="sendQuestion()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="currentColor"
+                            d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z">
+                        </path>
+                    </svg>
+                </button>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        // Script principal da aplicação (sem alterações)
+        const chatMessages = document.getElementById('chatMessages');
+        const userQuestion = document.getElementById('userQuestion');
+        userQuestion.addEventListener('input', function () { this.style.height = 'auto'; this.style.height = (this.scrollHeight) + 'px'; });
+        function handleKeyPress(event) { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendQuestion(); } }
+        function scrollToBottom() { const chatBody = document.querySelector('.chat-body'); chatBody.scrollTop = chatBody.scrollHeight; }
+        function addUserMessage(text) { const messageDiv = document.createElement('div'); messageDiv.classList.add('message', 'message-user'); const p = document.createElement('p'); p.textContent = text; messageDiv.appendChild(p); chatMessages.appendChild(messageDiv); scrollToBottom(); }
+        function addTypingIndicator() { const existingIndicator = document.getElementById('typingIndicator'); if (existingIndicator) return existingIndicator; const indicatorDiv = document.createElement('div'); indicatorDiv.id = 'typingIndicator'; indicatorDiv.classList.add('message', 'message-assistant', 'loading-indicator'); indicatorDiv.innerHTML = `<p>Analisando...</p>`; chatMessages.appendChild(indicatorDiv); scrollToBottom(); return indicatorDiv; }
+        function removeTypingIndicator() { const indicator = document.getElementById('typingIndicator'); if (indicator) { indicator.remove(); } }
+        async function sendQuestion() {
+            const question = userQuestion.value.trim();
+            if (!question) return;
+
+            // NOVO: Pegue o valor do seletor
+            const selectedAccount = document.getElementById('account-selector').value;
+
+            addUserMessage(question);
+            userQuestion.value = '';
+            userQuestion.style.height = 'auto';
+            const typingIndicator = addTypingIndicator();
+            try {
+                const response = await fetch("http://127.0.0.1:8000/conta-corrente", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pergunta: question, tipo_conta: selectedAccount }) });
+                if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+                const data = await response.json();
+                removeTypingIndicator();
+                addAssistantMessage(data);
+            } catch (error) {
+                removeTypingIndicator();
+                addAssistantMessage({ analise_texto: "Desculpe, ocorreu um erro ao processar sua solicitação. Verifique o console para mais detalhes." });
+                console.error("Erro ao buscar dados da API:", error);
+            }
+        }
+        function addAssistantMessage(data) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', 'message-assistant');
+            
+            if (data.analise_texto) { const p = document.createElement('p'); p.textContent = data.analise_texto; messageDiv.appendChild(p); }
+            
+           /*   if (data.sql_gerado) { const sqlBlock = createContentBlock('SQL Gerado', 'copy'); const pre = document.createElement('pre'); pre.className = 'sql-container'; pre.textContent = data.sql_gerado; sqlBlock.content.appendChild(pre); sqlBlock.button.onclick = () => navigator.clipboard.writeText(data.sql_gerado).then(() => alert('SQL Copiado!')); messageDiv.appendChild(sqlBlock.container); } */
+           
+           
+            if (data.grafico && data.grafico.data && data.grafico.data.datasets.length > 0) { const chartBlock = createContentBlock('Gráfico', 'download'); const chartContainer = document.createElement('div'); chartContainer.className = 'chart-container'; const canvas = document.createElement('canvas'); const chartId = 'chart-' + Date.now(); canvas.id = chartId; chartContainer.appendChild(canvas); chartBlock.content.appendChild(chartContainer); chartBlock.button.onclick = () => downloadChart(chartId); messageDiv.appendChild(chartBlock.container); setTimeout(() => renderChart(chartId, data.grafico), 0); }
+            if (data.dados && data.dados.length > 0) { const dataBlock = createContentBlock('Dados da Consulta', 'export'); const tableContainer = document.createElement('div'); tableContainer.className = 'data-table-container'; tableContainer.innerHTML = createDataTableHTML(data.dados); dataBlock.content.appendChild(tableContainer); dataBlock.button.onclick = () => exportDataToCSV(data.dados); messageDiv.appendChild(dataBlock.container); }
+            if (messageDiv.hasChildNodes()) { chatMessages.appendChild(messageDiv); scrollToBottom(); }
+        }
+        function createContentBlock(title, iconType) {
+            const container = document.createElement('div'); container.className = 'content-block';
+            const header = document.createElement('div'); header.className = 'content-block-header';
+            const h4 = document.createElement('h4'); h4.textContent = title;
+            const button = document.createElement('button'); button.className = 'content-action-btn';
+            const icons = { copy: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>', download: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>', export: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19.35 10.04C18.67 6.59 15.64 4 12 4C9.11 4 6.6 5.64 5.35 8.04C2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5c0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5l-5-5h3V9h4v4h3z"/></svg>' };
+            button.innerHTML = icons[iconType] || '';
+            header.appendChild(h4); header.appendChild(button); container.appendChild(header);
+            const content = document.createElement('div'); container.appendChild(content);
+            return { container, content, button };
+        }
+        function createDataTableHTML(data) { const columns = Object.keys(data[0]); let tableHTML = "<table class='data-table'><thead><tr>"; columns.forEach(column => { tableHTML += `<th>${column}</th>`; }); tableHTML += "</tr></thead><tbody>"; data.forEach(row => { tableHTML += "<tr>"; columns.forEach(column => { let value = row[column]; if (typeof value === 'number') { value = value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); } tableHTML += `<td>${value}</td>`; }); tableHTML += "</tr>"; }); tableHTML += "</tbody></table>"; return tableHTML; }
+        function renderChart(canvasId, chartData) { const ctx = document.getElementById(canvasId).getContext('2d'); new Chart(ctx, { type: chartData.type, data: chartData.data, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { color: document.body.classList.contains('dark-mode') ? '#fff' : '#666' } }, title: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: document.body.classList.contains('dark-mode') ? '#fff' : '#666' } }, x: { ticks: { color: document.body.classList.contains('dark-mode') ? '#fff' : '#666' } } } } }); }
+        function downloadChart(canvasId) { const canvas = document.getElementById(canvasId); if (!canvas) { alert('Elemento do gráfico não encontrado.'); return; } const link = document.createElement('a'); link.href = canvas.toDataURL('image/png'); link.download = `grafico-${new Date().toISOString().slice(0, 10)}.png`; link.click(); }
+        function exportDataToCSV(data) { const columns = Object.keys(data[0]); let csvContent = columns.join(',') + '\n'; data.forEach(row => { const values = columns.map(col => { let field = String(row[col]); if (field.includes(',') || field.includes('"') || field.includes('\n')) { field = '"' + field.replace(/"/g, '""') + '"'; } return field; }); csvContent += values.join(',') + '\n'; }); const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `dados-${new Date().toISOString().slice(0, 10)}.csv`; link.click(); URL.revokeObjectURL(url); }
+
+        // === NOVO: LÓGICA DO MODO ESCURO ===
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const body = document.body;
+        const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.64 5.64c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l1.06 1.06c.39.39 1.02.39 1.41 0s.39-1.02 0-1.41L5.64 5.64zm12.73 12.73c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l1.06 1.06c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41l-1.06-1.06zm1.06-12.73c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.02 0 1.41s1.02.39 1.41 0l1.06-1.06zm-12.73 12.73c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.02 0 1.41s1.02.39 1.41 0l1.06-1.06z"/></svg>`;
+        const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.82.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>`;
+
+        function applyTheme(theme) {
+            body.classList.remove('dark-mode', 'light-mode');
+            body.classList.add(theme + '-mode');
+            themeToggleBtn.innerHTML = theme === 'dark' ? sunIcon : moonIcon;
+            localStorage.setItem('theme', theme);
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            const newTheme = body.classList.contains('dark-mode') ? 'light' : 'dark';
+            applyTheme(newTheme);
+        });
+
+        // Aplica o tema salvo quando a página carrega
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            applyTheme(savedTheme);
+        });
+
+    </script>
+</body>
+
+</html>
