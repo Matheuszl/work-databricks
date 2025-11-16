@@ -7,6 +7,10 @@ architecture.excalidraw
 features.txt
 virtual_env.txt
 
+ingestao_local/
+databricks_lake.py
+etl.py
+
 # C extensions
 *.so
 

@@ -240,27 +240,7 @@ def gerar_grafico_agent_visualizacao(dados_recuperados):
         return None
 
 def gerar_anase_agent_negocios(dados_recuperados, contexto_tabela, pergunta_usuario):
-    # prompt_analise = f"""
-    # Você é um analista de dados.
 
-    # Abaixo estão dados financeiros que registram movimentos financeiros individuais podendo ser utilizados para análises de receitas, despesas e investimentos.
-    
-    # Com esses dados também é possível identificar padrões de consumo, sazonalidade e comportamento do cliente.
-    
-
-    # {contexto_tabela}
-
-    # Dados:
-    # {dados_recuperados}
-
-    # Com base nas informações acima, escreva uma análise descritiva clara e objetiva, destacando os principais padrões ou comportamentos observados. A análise deve começar com um parágrafo curto, resumindo os principais insights de forma detalhada.
-
-    # Em seguida, liste no maximo 3 sugestões de ações ou investigações adicionais que poderiam ajudar a entender melhor os dados ou apoiar decisões estratégicas. 
-
-    # Evite usar negritos, itálicos ou símbolos especiais na resposta. Mantenha o texto limpo e direto.
-    # """
-    
-    
     
     prompt_analise = f"""
         Você é um analista de dados especialista em finanças pessoais. Sua tarefa é analisar um conjunto de dados extraído em resposta a uma pergunta de um usuário e apresentar os resultados de forma clara e estruturada.

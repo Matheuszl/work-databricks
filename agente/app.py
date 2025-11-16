@@ -6,6 +6,8 @@ import agents as agents
 from typing import Literal
 
 from fastapi.middleware.cors import CORSMiddleware
+import os
+from fastapi.responses import FileResponse
 
 app = FastAPI()
 
@@ -59,3 +61,8 @@ def ask_question(request: PerguntaRequest):  # ← Removido o parâmetro "sql"
         traceback.print_exc()  # ← Mostra o stack trace completo
         raise HTTPException(status_code=500, detail=f"Erro: {str(e)}")  # ← Mostra o erro
     
+
+@app.get("/")
+def serve_frontend():
+    caminho = os.path.join(os.path.dirname(__file__), "index.html")
+    return FileResponse(caminho)
