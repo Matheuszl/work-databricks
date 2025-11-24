@@ -8,7 +8,10 @@ import database
 
 from fastapi.middleware.cors import CORSMiddleware
 import os
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
+from gtts import gTTS
+from io import BytesIO
 
 app = FastAPI()
 
@@ -23,6 +26,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 class PerguntaRequest(BaseModel):
     pergunta: str
@@ -52,10 +58,11 @@ class Message(BaseModel):
 class RenameRequest(BaseModel):
     title: str
 
+class TTSRequest(BaseModel):
+    text: str
 
-        
 @app.post("/conta-corrente", response_model=PerguntaResponse)
-def ask_question(request: PerguntaRequest):  # ← Removido o parâmetro "sql"
+def ask_question(request: PerguntaRequest):
     try:
         conversation_id = request.conversation_id
         
@@ -73,7 +80,7 @@ def ask_question(request: PerguntaRequest):  # ← Removido o parâmetro "sql"
         sql_gerado, dados, grafico, texto = agents.main(
             request.pergunta, 
             request.tipo_conta,
-            sql  # ← Passa o módulo sql do databricks importado no topo
+            sql  # Passa o módulo sql do databricks importado no topo
         )
         
         # Se `grafico` for None, use um dicionário vazio no lugar
@@ -83,7 +90,7 @@ def ask_question(request: PerguntaRequest):  # ← Removido o parâmetro "sql"
         database.add_message(conversation_id, "ai", texto, grafico_para_retorno)
 
         return {
-            "sql_gerado": sql_gerado,  # ← Renomeei para evitar confusão com o módulo
+            "sql_gerado": sql_gerado,
             "dados": dados,
             "grafico": grafico_para_retorno,
             "analise_texto": texto,
@@ -91,14 +98,13 @@ def ask_question(request: PerguntaRequest):  # ← Removido o parâmetro "sql"
         }
 
     except NotImplementedError as e:
-        print(f"❌ NotImplementedError: {e}")  # ← Debug
+        print(f"❌ NotImplementedError: {e}")
         raise HTTPException(status_code=501, detail=str(e))
     except Exception as e:
-        print(f"❌ ERRO COMPLETO: {e}")  # ← Debug
+        print(f"❌ ERRO COMPLETO: {e}")
         import traceback
-        traceback.print_exc()  # ← Mostra o stack trace completo
-        raise HTTPException(status_code=500, detail=f"Erro: {str(e)}")  # ← Mostra o erro
-    
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Erro: {str(e)}")
 
 @app.get("/conversations", response_model=List[Conversation])
 def get_conversations():
@@ -108,7 +114,13 @@ def get_conversations():
 def create_conversation():
     id = database.create_conversation("Nova Conversa")
     conversations = database.get_conversations()
-
+    # Assuming the last one is the new one, or just returning a placeholder to satisfy the model if the original code was broken.
+    # I'll try to find the created conversation.
+    for c in conversations:
+        if c['id'] == id: # Assuming dictionary or object
+             return c
+    # Fallback if not found (should not happen)
+    return {"id": id, "title": "Nova Conversa", "created_at": ""}
 
 @app.patch("/conversations/{conversation_id}")
 def rename_conversation(conversation_id: int, request: RenameRequest):
@@ -129,6 +141,19 @@ def delete_conversation(conversation_id: int):
 @app.get("/conversations/{conversation_id}/messages", response_model=List[Message])
 def get_messages(conversation_id: int):
     return database.get_messages(conversation_id)
+
+@app.post("/tts")
+def text_to_speech(request: TTSRequest):
+    try:
+        # Generate audio using gTTS with Brazilian Portuguese accent
+        tts = gTTS(text=request.text, lang='pt', tld='com.br', slow=False)
+        audio_fp = BytesIO()
+        tts.write_to_fp(audio_fp)
+        audio_fp.seek(0)
+        return StreamingResponse(audio_fp, media_type="audio/mpeg")
+    except Exception as e:
+        print(f"Error generating audio: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/")
 def serve_frontend():

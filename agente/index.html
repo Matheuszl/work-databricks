@@ -580,6 +580,46 @@
                 font-size: 15px;
             }
         }
+
+        .audio-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            margin-left: 8px;
+            vertical-align: middle;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            color: inherit;
+        }
+
+        .audio-btn:hover {
+            opacity: 1;
+        }
+
+        .audio-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        .audio-playing {
+            animation: pulse 1s infinite;
+            color: var(--wa-green);
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
     </style>
 </head>
 
@@ -758,9 +798,52 @@
         function addMessage(text, sender = "in") {
             const div = document.createElement("div");
             div.className = "msg msg-" + sender;
-            div.textContent = text;
+
+            const textSpan = document.createElement("span");
+            textSpan.textContent = text;
+            div.appendChild(textSpan);
+
+            if (sender === "in") {
+                const audioBtn = document.createElement("button");
+                audioBtn.className = "audio-btn";
+                audioBtn.title = "Ouvir";
+                audioBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16.02C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z" /></svg>';
+                audioBtn.onclick = () => playAudio(text, audioBtn);
+                div.appendChild(audioBtn);
+            }
+
             chat.appendChild(div);
             chat.scrollTop = chat.scrollHeight;
+        }
+
+        async function playAudio(text, btn) {
+            if (btn.classList.contains('audio-playing')) return;
+
+            btn.classList.add('audio-playing');
+            try {
+                const response = await fetch(`${API_URL}/tts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text })
+                });
+
+                if (!response.ok) throw new Error('Erro ao gerar áudio');
+
+                const blob = await response.blob();
+                const audioUrl = URL.createObjectURL(blob);
+                const audio = new Audio(audioUrl);
+
+                audio.onended = () => {
+                    btn.classList.remove('audio-playing');
+                    URL.revokeObjectURL(audioUrl);
+                };
+
+                audio.play();
+            } catch (e) {
+                console.error(e);
+                btn.classList.remove('audio-playing');
+                alert("Erro ao reproduzir áudio.");
+            }
         }
 
         function renderChart(chartData) {
