@@ -599,3 +599,24 @@ body.dark-mode .close-chart {
     50% { transform: scale(1.2); }
     100% { transform: scale(1); }
 }
+
+.voice-select {
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.voice-select option {
+    background: var(--input-bg-light);
+    color: var(--text-light);
+}
+
+body.dark-mode .voice-select option {
+    background: var(--input-bg-dark);
+    color: var(--text-dark);
+}

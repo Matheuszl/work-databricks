@@ -6,618 +6,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <title>Analista Financeiro</title>
+    <link rel="stylesheet" href="/static/styles.css">
     <style>
-        :root {
-            --wa-green: #075e54;
-            --wa-green-light: #128c7e;
-            --bg-light: #efeae2;
-            --msg-out-light: #dcf8c6;
-            --msg-in-light: #ffffff;
-            --input-bg-light: #f0f2f5;
-            --input-field-light: #ffffff;
-            --text-light: #111111;
-            --bg-dark: #111b21;
-            --msg-out-dark: #005c4b;
-            --msg-in-dark: #202c33;
-            --input-bg-dark: #202c33;
-            --input-field-dark: #2a3942;
-            --text-dark: #e9edef;
-            --radius: 8px;
-            --shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
-            --sidebar-bg-light: #ffffff;
-            --sidebar-bg-dark: #111b21;
-            --sidebar-border-light: #e9edef;
-            --sidebar-border-dark: #202c33;
-            --sidebar-hover-light: #f5f6f6;
-            --sidebar-hover-dark: #202c33;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            height: 100dvh;
-            display: flex;
-            background: var(--bg-light);
-            color: var(--text-light);
-            overflow: hidden;
-            transition: background 0.3s, color 0.3s;
-        }
-
-        body.dark-mode {
-            background: var(--bg-dark);
-            color: var(--text-dark);
-        }
-
-        /* Sidebar Styles */
-        .sidebar {
-            width: 300px;
-            background: var(--sidebar-bg-light);
-            border-right: 1px solid var(--sidebar-border-light);
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            flex-shrink: 0;
-            transition: background 0.3s, border-color 0.3s;
-        }
-
-        body.dark-mode .sidebar {
-            background: var(--sidebar-bg-dark);
-            border-right: 1px solid var(--sidebar-border-dark);
-        }
-
-        .sidebar-header {
-            height: 60px;
-            background: var(--input-bg-light);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 16px;
-            border-bottom: 1px solid var(--sidebar-border-light);
-        }
-
-        body.dark-mode .sidebar-header {
-            background: var(--input-bg-dark);
-            border-bottom: 1px solid var(--sidebar-border-dark);
-        }
-
-        .new-chat-btn {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            transition: background 0.2s;
-        }
-
-        .new-chat-btn:hover {
-            background: rgba(0, 0, 0, 0.05);
-        }
-
-        body.dark-mode .new-chat-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .new-chat-btn svg {
-            width: 24px;
-            height: 24px;
-            fill: var(--text-light);
-        }
-
-        body.dark-mode .new-chat-btn svg {
-            fill: var(--text-dark);
-        }
-
-        .conversation-list {
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .conversation-item {
-            padding: 12px 16px;
-            cursor: pointer;
-            border-bottom: 1px solid var(--sidebar-border-light);
-            transition: background 0.2s;
-        }
-
-        body.dark-mode .conversation-item {
-            border-bottom: 1px solid var(--sidebar-border-dark);
-        }
-
-        .conversation-item:hover {
-            background: var(--sidebar-hover-light);
-        }
-
-        body.dark-mode .conversation-item:hover {
-            background: var(--sidebar-hover-dark);
-        }
-
-        .conversation-item.active {
-            background: var(--input-bg-light);
-        }
-
-        body.dark-mode .conversation-item.active {
-            background: var(--input-bg-dark);
-        }
-
-        .conversation-title {
-            font-size: 16px;
-            font-weight: 500;
-            margin-bottom: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .conversation-date {
-            font-size: 12px;
-            color: #667781;
-        }
-
-        body.dark-mode .conversation-date {
-            color: #8696a0;
-        }
-
-        .conversation-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 8px;
-            opacity: 0;
-            /* Hidden by default, shown on hover */
-            transition: opacity 0.2s;
-        }
-
-        .conversation-item:hover .conversation-actions {
-            opacity: 1;
-        }
-
-        .action-btn {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .action-btn:hover {
-            background: rgba(0, 0, 0, 0.1);
-        }
-
-        body.dark-mode .action-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .action-btn svg {
-            width: 18px;
-            height: 18px;
-            fill: var(--text-light);
-            opacity: 0.7;
-        }
-
-        body.dark-mode .action-btn svg {
-            fill: var(--text-dark);
-        }
-
-        /* Main Chat Area */
-        .chat-container {
-            flex: 1;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
-            background-repeat: repeat;
-            background-size: 400px;
-            position: relative;
-        }
-
-        body.dark-mode .chat-container {
-            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
-            background-blend-mode: soft-light;
-            background-color: #0b141a;
-        }
-
-        /* Overlay to tint the background image */
-        .chat-container::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(229, 221, 213, 0.9);
-            /* Light mode tint */
-            z-index: 0;
+        /* Additional styles for audio loading and error states */
+        .audio-loading {
+            opacity: 0.6;
             pointer-events: none;
         }
 
-        body.dark-mode .chat-container::before {
-            background-color: rgba(11, 20, 26, 0.9);
-            /* Dark mode tint */
+        .audio-error {
+            color: #ff4444 !important;
         }
 
-        .header,
-        .chat-body,
-        .chat-input-area {
-            position: relative;
-            z-index: 1;
-        }
-
-        .header {
-            height: 60px;
-            background: var(--input-bg-light);
-            color: var(--text-light);
-            display: flex;
-            align-items: center;
-            padding: 0 16px;
-            flex-shrink: 0;
-            border-bottom: 1px solid var(--sidebar-border-light);
-        }
-
-        body.dark-mode .header {
-            background: var(--input-bg-dark);
-            color: var(--text-dark);
-            border-bottom: 1px solid var(--sidebar-border-dark);
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            background: #dfe3e5;
-            border-radius: 50%;
-            margin-right: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        body.dark-mode .avatar {
-            background: #6a7175;
-        }
-
-        .avatar svg {
-            width: 24px;
-            height: 24px;
-            fill: #fff;
-        }
-
-        .header-info h1 {
-            font-size: 16px;
-            font-weight: 500;
-        }
-
-        .header-info p {
-            font-size: 12px;
-            opacity: 0.6;
-        }
-
-        .header-actions {
-            margin-left: auto;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            transition: background 0.2s;
-        }
-
-        .header-actions:hover {
-            background: rgba(0, 0, 0, 0.05);
-        }
-
-        body.dark-mode .header-actions:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .header-actions svg {
-            width: 24px;
-            height: 24px;
-            fill: var(--text-light);
-        }
-
-        body.dark-mode .header-actions svg {
-            fill: var(--text-dark);
-        }
-
-        .chat-body {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px 60px;
-            /* Added horizontal padding for better readability on wide screens */
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .msg {
-            max-width: 65%;
-            padding: 8px 12px;
-            font-size: 14.2px;
-            border-radius: var(--radius);
-            box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13);
-            line-height: 1.4;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            position: relative;
-        }
-
-        .msg-in {
-            background: var(--msg-in-light);
-            color: var(--text-light);
-            align-self: flex-start;
-            border-top-left-radius: 0;
-        }
-
-        .msg-out {
-            background: var(--msg-out-light);
-            color: var(--text-light);
-            align-self: flex-end;
-            border-top-right-radius: 0;
-        }
-
-        body.dark-mode .msg-in {
-            background: var(--msg-in-dark);
-            color: var(--text-dark);
-        }
-
-        body.dark-mode .msg-out {
-            background: var(--msg-out-dark);
-            color: var(--text-dark);
-        }
-
-        .chart-bubble {
-            background: var(--msg-in-light);
-            padding: 10px;
-            border-radius: 12px;
-            margin: 8px 0;
-            max-width: 65%;
-            align-self: flex-start;
-            cursor: pointer;
-            transition: transform 0.2s;
-            box-shadow: var(--shadow);
-        }
-
-        body.dark-mode .chart-bubble {
-            background: var(--msg-in-dark);
-        }
-
-        .chart-bubble:active {
-            transform: scale(0.98);
-        }
-
-        .chart-bubble canvas {
-            width: 100% !important;
-            height: 250px !important;
-            border-radius: 8px;
-        }
-
-        .chat-input-area {
-            display: flex;
-            padding: 10px 16px;
-            background: var(--input-bg-light);
-            gap: 10px;
-            flex-shrink: 0;
-            align-items: center;
-        }
-
-        body.dark-mode .chat-input-area {
-            background: var(--input-bg-dark);
-        }
-
-        .chat-input {
-            flex: 1;
-            padding: 9px 12px;
-            border-radius: 8px;
-            border: none;
-            outline: none;
-            font-size: 15px;
-            background: var(--input-field-light);
-            color: var(--text-light);
-        }
-
-        body.dark-mode .chat-input {
-            background: var(--input-field-dark);
-            color: var(--text-dark);
-        }
-
-        .send-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: none;
-            background: transparent;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background 0.2s;
-            flex-shrink: 0;
-        }
-
-        .send-btn:hover {
-            background: rgba(0, 0, 0, 0.05);
-        }
-
-        body.dark-mode .send-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .send-btn svg {
-            width: 24px;
-            height: 24px;
-            fill: #54656f;
-        }
-
-        body.dark-mode .send-btn svg {
-            fill: #8696a0;
-        }
-
-        .chart-modal {
-            display: none;
-            position: fixed;
-            z-index: 9999;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            justify-content: center;
-            align-items: center;
-            animation: fadeIn 0.3s;
-        }
-
-        @keyframes fadeIn {
+        @keyframes spin {
             from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinning {
+            animation: spin 1s linear infinite;
+        }
+
+        .audio-error-toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff4444;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            font-size: 14px;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .audio-error-toast.fade-out {
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        @keyframes slideUp {
+            from {
+                bottom: 60px;
                 opacity: 0;
             }
 
             to {
+                bottom: 80px;
                 opacity: 1;
-            }
-        }
-
-        .chart-modal-content {
-            position: relative;
-            width: 95%;
-            height: 90%;
-            background: var(--msg-in-light);
-            padding: 50px 10px 10px 10px;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        body.dark-mode .chart-modal-content {
-            background: var(--msg-in-dark);
-        }
-
-        .close-chart {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 32px;
-            cursor: pointer;
-            color: var(--text-light);
-            z-index: 10000;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 50%;
-        }
-
-        body.dark-mode .close-chart {
-            color: var(--text-dark);
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .download-chart {
-            position: absolute;
-            top: 10px;
-            left: 15px;
-            background: var(--wa-green-light);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            z-index: 10000;
-            transition: background 0.2s;
-        }
-
-        .download-chart:active {
-            background: var(--wa-green);
-            transform: scale(0.95);
-        }
-
-        #fullscreenChart {
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                position: absolute;
-                z-index: 100;
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-            }
-
-            .sidebar.open {
-                transform: translateX(0);
-            }
-
-            .msg {
-                max-width: 85%;
-                font-size: 13px;
-            }
-
-            .chat-body {
-                padding: 16px 12px;
-            }
-
-            .chart-bubble {
-                max-width: 90%;
-            }
-
-            .chart-modal-content {
-                width: 98%;
-                height: 95%;
-                padding: 45px 5px 5px 5px;
-            }
-
-            .header-info h1 {
-                font-size: 15px;
-            }
-        }
-
-        .audio-btn {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            margin-left: 8px;
-            vertical-align: middle;
-            opacity: 0.7;
-            transition: opacity 0.2s;
-            color: inherit;
-        }
-
-        .audio-btn:hover {
-            opacity: 1;
-        }
-
-        .audio-btn svg {
-            width: 18px;
-            height: 18px;
-            fill: currentColor;
-        }
-
-        .audio-playing {
-            animation: pulse 1s infinite;
-            color: var(--wa-green);
-        }
-
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.2);
-            }
-
-            100% {
-                transform: scale(1);
             }
         }
     </style>
@@ -654,6 +97,15 @@
             <div class="header-info">
                 <h1>Analista Financeiro</h1>
                 <p>online</p>
+            </div>
+            <div class="header-actions" style="margin-right: 10px;">
+                <select id="voiceSelect" class="voice-select" title="Selecionar Voz">
+                    <option value="Puck">Puck (Masculina)</option>
+                    <option value="Charon">Charon (Masculina)</option>
+                    <option value="Kore">Kore (Feminina)</option>
+                    <option value="Fenrir">Fenrir (Masculina)</option>
+                    <option value="Aoede">Aoede (Feminina)</option>
+                </select>
             </div>
             <div class="header-actions" id="theme-toggle">
                 <svg viewBox="0 0 24 24">
@@ -696,9 +148,8 @@
         let currentChartData = null;
         let currentConversationId = null;
 
-        const API_URL = "https://unreproachable-hybridisable-maggie.ngrok-free.dev"; // Update if needed
+        const API_URL = "https://unreproachable-hybridisable-maggie.ngrok-free.dev";
 
-        // Load conversations on startup
         loadConversations();
 
         async function loadConversations() {
@@ -759,13 +210,10 @@
 
         async function loadConversation(id) {
             currentConversationId = id;
-            chat.innerHTML = ""; // Clear current chat
+            chat.innerHTML = "";
 
-            // Update active state in sidebar
             const items = document.querySelectorAll('.conversation-item');
             items.forEach(item => item.classList.remove('active'));
-            // We'd need to re-render or find the specific element to add 'active' class, 
-            // but re-fetching list is easier to keep sync
             loadConversations();
 
             try {
@@ -792,7 +240,7 @@
             currentConversationId = null;
             chat.innerHTML = "";
             addMessage("Olá! Sou seu analista financeiro. Envie sua pergunta para começar.", "in");
-            loadConversations(); // Refresh list to remove active selection
+            loadConversations();
         }
 
         function addMessage(text, sender = "in") {
@@ -817,32 +265,86 @@
         }
 
         async function playAudio(text, btn) {
-            if (btn.classList.contains('audio-playing')) return;
+            if (btn.classList.contains('audio-playing') || btn.classList.contains('audio-loading')) return;
 
-            btn.classList.add('audio-playing');
+            const voice = document.getElementById('voiceSelect').value;
+            const originalHTML = btn.innerHTML;
+
+            btn.classList.add('audio-loading');
+            btn.innerHTML = '<svg viewBox="0 0 24 24" class="spinning"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="31.4 31.4" stroke-linecap="round"/></svg>';
+            btn.title = "Carregando áudio...";
+
             try {
                 const response = await fetch(`${API_URL}/tts`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: text })
+                    body: JSON.stringify({ text: text, voice: voice })
                 });
 
-                if (!response.ok) throw new Error('Erro ao gerar áudio');
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ detail: 'Erro desconhecido' }));
+                    throw new Error(errorData.detail || `Erro ${response.status}`);
+                }
 
                 const blob = await response.blob();
+
+                if (blob.size === 0) {
+                    throw new Error('Áudio vazio recebido');
+                }
+
                 const audioUrl = URL.createObjectURL(blob);
                 const audio = new Audio(audioUrl);
 
+                btn.classList.remove('audio-loading');
+                btn.classList.add('audio-playing');
+                btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16.02C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z" /></svg>';
+                btn.title = "Reproduzindo...";
+
                 audio.onended = () => {
                     btn.classList.remove('audio-playing');
+                    btn.innerHTML = originalHTML;
+                    btn.title = "Ouvir";
                     URL.revokeObjectURL(audioUrl);
                 };
 
-                audio.play();
+                audio.onerror = () => {
+                    btn.classList.remove('audio-playing');
+                    btn.classList.add('audio-error');
+                    btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12,2C6.48,2 2,6.48 2,12C2,17.52 6.48,22 12,22C17.52,22 22,17.52 22,12C22,6.48 17.52,2 12,2M13,17H11V15H13V17M13,13H11V7H13V13Z"/></svg>';
+                    btn.title = "Erro ao reproduzir";
+                    URL.revokeObjectURL(audioUrl);
+
+                    setTimeout(() => {
+                        btn.classList.remove('audio-error');
+                        btn.innerHTML = originalHTML;
+                        btn.title = "Ouvir";
+                    }, 3000);
+                };
+
+                await audio.play();
+
             } catch (e) {
-                console.error(e);
-                btn.classList.remove('audio-playing');
-                alert("Erro ao reproduzir áudio.");
+                console.error('Erro no TTS:', e);
+                btn.classList.remove('audio-loading');
+                btn.classList.add('audio-error');
+                btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12,2C6.48,2 2,6.48 2,12C2,17.52 6.48,22 12,22C17.52,22 22,17.52 22,12C22,6.48 17.52,2 12,2M13,17H11V15H13V17M13,13H11V7H13V13Z"/></svg>';
+                btn.title = `Erro: ${e.message}`;
+
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'audio-error-toast';
+                errorMsg.textContent = `❌ ${e.message}`;
+                document.body.appendChild(errorMsg);
+
+                setTimeout(() => {
+                    errorMsg.classList.add('fade-out');
+                    setTimeout(() => errorMsg.remove(), 300);
+                }, 3000);
+
+                setTimeout(() => {
+                    btn.classList.remove('audio-error');
+                    btn.innerHTML = originalHTML;
+                    btn.title = "Ouvir";
+                }, 3000);
             }
         }
 
@@ -915,10 +417,9 @@
                 const data = await response.json();
                 loadingMsg.remove();
 
-                // Update current conversation ID if it was a new chat
                 if (!currentConversationId && data.conversation_id) {
                     currentConversationId = data.conversation_id;
-                    loadConversations(); // Refresh sidebar to show new chat
+                    loadConversations();
                 }
 
                 addMessage(data.analise_texto || "Sem resposta.", "in");

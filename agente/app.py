@@ -1,17 +1,20 @@
 from fastapi import FastAPI, HTTPException
 from databricks import sql
 from pydantic import BaseModel
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Literal
 import agents as agents 
-from typing import Literal
 import database
-
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from gtts import gTTS
+from google import genai
+from google.genai import types
 from io import BytesIO
+from dotenv import load_dotenv
+import base64
+
+load_dotenv()
 
 app = FastAPI()
 
@@ -27,8 +30,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# Mount static files directory
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 class PerguntaRequest(BaseModel):
     pergunta: str
@@ -60,6 +64,7 @@ class RenameRequest(BaseModel):
 
 class TTSRequest(BaseModel):
     text: str
+    voice: Optional[str] = "Puck"
 
 @app.post("/conta-corrente", response_model=PerguntaResponse)
 def ask_question(request: PerguntaRequest):
@@ -145,14 +150,42 @@ def get_messages(conversation_id: int):
 @app.post("/tts")
 def text_to_speech(request: TTSRequest):
     try:
-        # Generate audio using gTTS with Brazilian Portuguese accent
-        tts = gTTS(text=request.text, lang='pt', tld='com.br', slow=False)
-        audio_fp = BytesIO()
-        tts.write_to_fp(audio_fp)
-        audio_fp.seek(0)
-        return StreamingResponse(audio_fp, media_type="audio/mpeg")
+        client = genai.Client(api_key=os.getenv("IA_STUDIO"))
+        
+        # Use models.generate_content with live API configuration
+        # Gemini 2.0 Flash Experimental supports multimodal live API
+        response = client.models.generate_content(
+            model="gemini-2.5-flash-preview-tts",
+            contents=request.text,
+            config=types.GenerateContentConfig(
+                response_modalities=["AUDIO"],
+                speech_config=types.SpeechConfig(
+                    voice_config=types.VoiceConfig(
+                        prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                            voice_name=request.voice
+                        )
+                    )
+                )
+            )
+        )
+        
+        # Extract audio bytes from response
+        if response.candidates and response.candidates[0].content.parts:
+            for part in response.candidates[0].content.parts:
+                if part.inline_data and part.inline_data.data:
+                    audio_data = part.inline_data.data
+                    # Handle both string (base64) and bytes
+                    if isinstance(audio_data, str):
+                        audio_bytes = base64.b64decode(audio_data)
+                    else:
+                        audio_bytes = audio_data
+                        
+                    return StreamingResponse(BytesIO(audio_bytes), media_type="audio/wav")
+                    
+        raise Exception("No audio data generated")
+
     except Exception as e:
-        print(f"Error generating audio: {e}")
+        print(f"Error generating audio with Gemini: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/")
