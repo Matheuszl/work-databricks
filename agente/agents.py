@@ -22,7 +22,7 @@ contexto_tabela_conta_corrente = """
     - id (BIGINT): identificador primário da tabela.
     - tipo_movimentacao (TEXT): indica se o movimento foi uma Entrada, Saída ou Transferência para Investimentos.
     - meio_de_pagamento (TEXT): descreve o meio de pagamento utilizado, como Fatura Cartão de Crédito, Boleto (Débito Conta), Compra no Débito, PIX ou Outros.
-    - categoria (TEXT): define a categoria do movimento, podendo ser Investimento, Salário, Contas Fixas, Cartão de Crédito ou Outros.
+    - categoria (TEXT): define a categoria do movimento, podendo ser Investimento, Salario, Contas Fixas, Cartão de Crédito ou Outros.
     - motivo (TEXT): descreve o motivo do movimento, como Internet, Luz, Academia, entre outros.
     - valor (DOUBLE): representa o valor financeiro do movimento.
     - data (DATE): armazena a data do movimento no formato AAAA-MM-DD.

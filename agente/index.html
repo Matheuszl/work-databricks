@@ -3,63 +3,274 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <title>Analista Financeiro</title>
-
     <style>
-        /* -- PALETA OFICIAL WHATSAPP -- */
         :root {
             --wa-green: #075e54;
             --wa-green-light: #128c7e;
-
-            /* Modo claro */
             --bg-light: #efeae2;
             --msg-out-light: #dcf8c6;
             --msg-in-light: #ffffff;
-
-            /* Modo escuro */
+            --input-bg-light: #f0f2f5;
+            --input-field-light: #ffffff;
+            --text-light: #111111;
             --bg-dark: #111b21;
             --msg-out-dark: #005c4b;
             --msg-in-dark: #202c33;
-
+            --input-bg-dark: #202c33;
+            --input-field-dark: #2a3942;
+            --text-dark: #e9edef;
             --radius: 8px;
             --shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
+            --sidebar-bg-light: #ffffff;
+            --sidebar-bg-dark: #111b21;
+            --sidebar-border-light: #e9edef;
+            --sidebar-border-dark: #202c33;
+            --sidebar-hover-light: #f5f6f6;
+            --sidebar-hover-dark: #202c33;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             height: 100dvh;
             display: flex;
-            justify-content: center;
             background: var(--bg-light);
+            color: var(--text-light);
             overflow: hidden;
+            transition: background 0.3s, color 0.3s;
         }
 
         body.dark-mode {
             background: var(--bg-dark);
+            color: var(--text-dark);
         }
 
-        /* ---------------- HEADER ---------------- */
+        /* Sidebar Styles */
+        .sidebar {
+            width: 300px;
+            background: var(--sidebar-bg-light);
+            border-right: 1px solid var(--sidebar-border-light);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            flex-shrink: 0;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        body.dark-mode .sidebar {
+            background: var(--sidebar-bg-dark);
+            border-right: 1px solid var(--sidebar-border-dark);
+        }
+
+        .sidebar-header {
+            height: 60px;
+            background: var(--input-bg-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            border-bottom: 1px solid var(--sidebar-border-light);
+        }
+
+        body.dark-mode .sidebar-header {
+            background: var(--input-bg-dark);
+            border-bottom: 1px solid var(--sidebar-border-dark);
+        }
+
+        .new-chat-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .new-chat-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark-mode .new-chat-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .new-chat-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--text-light);
+        }
+
+        body.dark-mode .new-chat-btn svg {
+            fill: var(--text-dark);
+        }
+
+        .conversation-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .conversation-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--sidebar-border-light);
+            transition: background 0.2s;
+        }
+
+        body.dark-mode .conversation-item {
+            border-bottom: 1px solid var(--sidebar-border-dark);
+        }
+
+        .conversation-item:hover {
+            background: var(--sidebar-hover-light);
+        }
+
+        body.dark-mode .conversation-item:hover {
+            background: var(--sidebar-hover-dark);
+        }
+
+        .conversation-item.active {
+            background: var(--input-bg-light);
+        }
+
+        body.dark-mode .conversation-item.active {
+            background: var(--input-bg-dark);
+        }
+
+        .conversation-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .conversation-date {
+            font-size: 12px;
+            color: #667781;
+        }
+
+        body.dark-mode .conversation-date {
+            color: #8696a0;
+        }
+
+        .conversation-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            opacity: 0;
+            /* Hidden by default, shown on hover */
+            transition: opacity 0.2s;
+        }
+
+        .conversation-item:hover .conversation-actions {
+            opacity: 1;
+        }
+
+        .action-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-btn:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode .action-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .action-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--text-light);
+            opacity: 0.7;
+        }
+
+        body.dark-mode .action-btn svg {
+            fill: var(--text-dark);
+        }
+
+        /* Main Chat Area */
+        .chat-container {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+            background-repeat: repeat;
+            background-size: 400px;
+            position: relative;
+        }
+
+        body.dark-mode .chat-container {
+            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+            background-blend-mode: soft-light;
+            background-color: #0b141a;
+        }
+
+        /* Overlay to tint the background image */
+        .chat-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(229, 221, 213, 0.9);
+            /* Light mode tint */
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        body.dark-mode .chat-container::before {
+            background-color: rgba(11, 20, 26, 0.9);
+            /* Dark mode tint */
+        }
+
+        .header,
+        .chat-body,
+        .chat-input-area {
+            position: relative;
+            z-index: 1;
+        }
+
         .header {
             height: 60px;
-            background: var(--wa-green);
-            color: #fff;
+            background: var(--input-bg-light);
+            color: var(--text-light);
             display: flex;
             align-items: center;
             padding: 0 16px;
             flex-shrink: 0;
+            border-bottom: 1px solid var(--sidebar-border-light);
+        }
+
+        body.dark-mode .header {
+            background: var(--input-bg-dark);
+            color: var(--text-dark);
+            border-bottom: 1px solid var(--sidebar-border-dark);
         }
 
         .avatar {
-            width: 42px;
-            height: 42px;
-            background: rgba(255, 255, 255, 0.25);
+            width: 40px;
+            height: 40px;
+            background: #dfe3e5;
             border-radius: 50%;
             margin-right: 12px;
             display: flex;
@@ -67,10 +278,14 @@
             justify-content: center;
         }
 
+        body.dark-mode .avatar {
+            background: #6a7175;
+        }
+
         .avatar svg {
-            width: 28px;
-            height: 28px;
-            fill: white;
+            width: 24px;
+            height: 24px;
+            fill: #fff;
         }
 
         .header-info h1 {
@@ -80,131 +295,315 @@
 
         .header-info p {
             font-size: 12px;
-            opacity: 0.9;
+            opacity: 0.6;
         }
 
         .header-actions {
             margin-left: auto;
             cursor: pointer;
-            padding: 6px;
+            padding: 8px;
             border-radius: 50%;
+            transition: background 0.2s;
         }
 
         .header-actions:hover {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark-mode .header-actions:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .header-actions svg {
-            width: 22px;
-            height: 22px;
-            fill: white;
+            width: 24px;
+            height: 24px;
+            fill: var(--text-light);
         }
 
-        /* ---------------- CHAT ---------------- */
-        .chat-container {
-            width: 100%;
-            max-width: 1400px;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
+        body.dark-mode .header-actions svg {
+            fill: var(--text-dark);
         }
 
         .chat-body {
             flex: 1;
             overflow-y: auto;
-            padding: 22px;
+            padding: 20px 60px;
+            /* Added horizontal padding for better readability on wide screens */
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 8px;
+            -webkit-overflow-scrolling: touch;
         }
 
-        /* BOLHAS */
         .msg {
-            max-width: 75%;
-            padding: 10px 14px;
-            font-size: 14px;
+            max-width: 65%;
+            padding: 8px 12px;
+            font-size: 14.2px;
             border-radius: var(--radius);
-            box-shadow: var(--shadow);
+            box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.13);
             line-height: 1.4;
             white-space: pre-wrap;
+            word-wrap: break-word;
+            position: relative;
         }
 
         .msg-in {
             background: var(--msg-in-light);
+            color: var(--text-light);
             align-self: flex-start;
+            border-top-left-radius: 0;
         }
 
         .msg-out {
             background: var(--msg-out-light);
+            color: var(--text-light);
             align-self: flex-end;
+            border-top-right-radius: 0;
         }
 
         body.dark-mode .msg-in {
             background: var(--msg-in-dark);
-            color: #e9edef;
+            color: var(--text-dark);
         }
 
         body.dark-mode .msg-out {
             background: var(--msg-out-dark);
-            color: #e9edef;
+            color: var(--text-dark);
         }
 
-        /* ---------------- INPUT ---------------- */
+        .chart-bubble {
+            background: var(--msg-in-light);
+            padding: 10px;
+            border-radius: 12px;
+            margin: 8px 0;
+            max-width: 65%;
+            align-self: flex-start;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: var(--shadow);
+        }
+
+        body.dark-mode .chart-bubble {
+            background: var(--msg-in-dark);
+        }
+
+        .chart-bubble:active {
+            transform: scale(0.98);
+        }
+
+        .chart-bubble canvas {
+            width: 100% !important;
+            height: 250px !important;
+            border-radius: 8px;
+        }
+
         .chat-input-area {
             display: flex;
-            padding: 12px;
-            background: #f0f2f5;
+            padding: 10px 16px;
+            background: var(--input-bg-light);
             gap: 10px;
+            flex-shrink: 0;
+            align-items: center;
         }
 
         body.dark-mode .chat-input-area {
-            background: #202c33;
+            background: var(--input-bg-dark);
         }
 
         .chat-input {
             flex: 1;
-            padding: 12px 16px;
-            border-radius: 25px;
+            padding: 9px 12px;
+            border-radius: 8px;
             border: none;
             outline: none;
-            font-size: 14px;
-            background: white;
+            font-size: 15px;
+            background: var(--input-field-light);
+            color: var(--text-light);
         }
 
         body.dark-mode .chat-input {
-            background: #2a3942;
-            color: #e9edef;
+            background: var(--input-field-dark);
+            color: var(--text-dark);
         }
 
         .send-btn {
-            width: 46px;
-            height: 46px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             border: none;
-            background: var(--wa-green-light);
+            background: transparent;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            transition: background 0.2s;
+            flex-shrink: 0;
         }
 
         .send-btn:hover {
-            background: var(--wa-green);
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark-mode .send-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .send-btn svg {
             width: 24px;
             height: 24px;
-            fill: white;
+            fill: #54656f;
+        }
+
+        body.dark-mode .send-btn svg {
+            fill: #8696a0;
+        }
+
+        .chart-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .chart-modal-content {
+            position: relative;
+            width: 95%;
+            height: 90%;
+            background: var(--msg-in-light);
+            padding: 50px 10px 10px 10px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body.dark-mode .chart-modal-content {
+            background: var(--msg-in-dark);
+        }
+
+        .close-chart {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 32px;
+            cursor: pointer;
+            color: var(--text-light);
+            z-index: 10000;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+        }
+
+        body.dark-mode .close-chart {
+            color: var(--text-dark);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .download-chart {
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            background: var(--wa-green-light);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 10000;
+            transition: background 0.2s;
+        }
+
+        .download-chart:active {
+            background: var(--wa-green);
+            transform: scale(0.95);
+        }
+
+        #fullscreenChart {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: absolute;
+                z-index: 100;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .msg {
+                max-width: 85%;
+                font-size: 13px;
+            }
+
+            .chat-body {
+                padding: 16px 12px;
+            }
+
+            .chart-bubble {
+                max-width: 90%;
+            }
+
+            .chart-modal-content {
+                width: 98%;
+                height: 95%;
+                padding: 45px 5px 5px 5px;
+            }
+
+            .header-info h1 {
+                font-size: 15px;
+            }
         }
     </style>
 </head>
 
 <body>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="avatar" style="width: 32px; height: 32px; margin-right: 0;">
+                <svg viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+                    <path
+                        d="M12,12.5A3.5,3.5 0 0,0 15.5,9A3.5,3.5 0 0,0 12,5.5A3.5,3.5 0 0,0 8.5,9A3.5,3.5 0 0,0 12,12.5M12,14.5C9.67,14.5 5,15.67 5,18V20H19V18C19,15.67 14.33,14.5 12,14.5Z" />
+                </svg>
+            </div>
+            <button class="new-chat-btn" onclick="startNewChat()" title="Nova Conversa">
+                <svg viewBox="0 0 24 24">
+                    <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+                </svg>
+            </button>
+        </div>
+        <div class="conversation-list" id="conversationList">
+            <!-- Conversations will be loaded here -->
+        </div>
+    </div>
 
     <div class="chat-container">
-
-        <!-- HEADER -->
         <header class="header">
             <div class="avatar">
                 <svg viewBox="0 0 24 24">
@@ -212,12 +611,10 @@
                         d="M12,12.5A3.5,3.5 0 0,0 15.5,9A3.5,3.5 0 0,0 12,5.5A3.5,3.5 0 0,0 8.5,9A3.5,3.5 0 0,0 12,12.5M12,14.5C9.67,14.5 5,15.67 5,18V20H19V18C19,15.67 14.33,14.5 12,14.5Z" />
                 </svg>
             </div>
-
             <div class="header-info">
                 <h1>Analista Financeiro</h1>
                 <p>online</p>
             </div>
-
             <div class="header-actions" id="theme-toggle">
                 <svg viewBox="0 0 24 24">
                     <path
@@ -226,35 +623,183 @@
             </div>
         </header>
 
-        <!-- CHAT -->
         <div class="chat-body" id="chatMessages">
             <div class="msg msg-in">Olá! Sou seu analista financeiro. Envie sua pergunta para começar.</div>
         </div>
 
-        <!-- INPUT -->
         <footer class="chat-input-area">
             <input id="userInput" class="chat-input" placeholder="Digite uma mensagem..." />
-
             <button class="send-btn" onclick="sendMessage()">
                 <svg viewBox="0 0 24 24">
-                    <path
-                        d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
                 </svg>
             </button>
         </footer>
+    </div>
 
+    <div id="chartModal" class="chart-modal">
+        <div class="chart-modal-content">
+            <span id="closeChartModal" class="close-chart">&times;</span>
+            <button id="downloadChart" class="download-chart">Baixar PNG</button>
+            <canvas id="fullscreenChart"></canvas>
+        </div>
     </div>
 
     <script>
         const chat = document.getElementById("chatMessages");
         const input = document.getElementById("userInput");
+        const modal = document.getElementById("chartModal");
+        const closeModalBtn = document.getElementById("closeChartModal");
+        const downloadBtn = document.getElementById("downloadChart");
+        const conversationList = document.getElementById("conversationList");
+        let fullscreenChartInstance = null;
+        let currentChartData = null;
+        let currentConversationId = null;
+
+        const API_URL = "https://unreproachable-hybridisable-maggie.ngrok-free.dev"; // Update if needed
+
+        // Load conversations on startup
+        loadConversations();
+
+        async function loadConversations() {
+            try {
+                const response = await fetch(`${API_URL}/conversations`);
+                const conversations = await response.json();
+                renderConversations(conversations);
+            } catch (e) {
+                console.error("Failed to load conversations", e);
+            }
+        }
+
+        function renderConversations(conversations) {
+            conversationList.innerHTML = "";
+            conversations.forEach(c => {
+                const div = document.createElement("div");
+                div.className = `conversation-item ${c.id === currentConversationId ? 'active' : ''}`;
+                div.onclick = () => loadConversation(c.id);
+
+                const title = document.createElement("div");
+                title.className = "conversation-title";
+                title.textContent = c.title;
+
+                const date = document.createElement("div");
+                date.className = "conversation-date";
+                date.textContent = new Date(c.created_at).toLocaleDateString();
+
+                const actions = document.createElement("div");
+                actions.className = "conversation-actions";
+
+                const renameBtn = document.createElement("button");
+                renameBtn.className = "action-btn";
+                renameBtn.title = "Renomear";
+                renameBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" /></svg>';
+                renameBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    renameConversation(c.id, c.title);
+                };
+
+                const deleteBtn = document.createElement("button");
+                deleteBtn.className = "action-btn";
+                deleteBtn.title = "Excluir";
+                deleteBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteConversation(c.id);
+                };
+
+                actions.appendChild(renameBtn);
+                actions.appendChild(deleteBtn);
+
+                div.appendChild(title);
+                div.appendChild(date);
+                div.appendChild(actions);
+                conversationList.appendChild(div);
+            });
+        }
+
+        async function loadConversation(id) {
+            currentConversationId = id;
+            chat.innerHTML = ""; // Clear current chat
+
+            // Update active state in sidebar
+            const items = document.querySelectorAll('.conversation-item');
+            items.forEach(item => item.classList.remove('active'));
+            // We'd need to re-render or find the specific element to add 'active' class, 
+            // but re-fetching list is easier to keep sync
+            loadConversations();
+
+            try {
+                const response = await fetch(`${API_URL}/conversations/${id}/messages`);
+                const messages = await response.json();
+
+                if (messages.length === 0) {
+                    addMessage("Olá! Sou seu analista financeiro. Envie sua pergunta para começar.", "in");
+                } else {
+                    messages.forEach(msg => {
+                        addMessage(msg.content, msg.sender === 'user' ? 'out' : 'in');
+                        if (msg.chart_data) {
+                            renderChart(msg.chart_data);
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error("Failed to load messages", e);
+                addMessage("Erro ao carregar histórico.", "in");
+            }
+        }
+
+        function startNewChat() {
+            currentConversationId = null;
+            chat.innerHTML = "";
+            addMessage("Olá! Sou seu analista financeiro. Envie sua pergunta para começar.", "in");
+            loadConversations(); // Refresh list to remove active selection
+        }
 
         function addMessage(text, sender = "in") {
             const div = document.createElement("div");
-            div.className = "msg msg-" + (sender === "out" ? "out" : "in");
+            div.className = "msg msg-" + sender;
             div.textContent = text;
             chat.appendChild(div);
             chat.scrollTop = chat.scrollHeight;
+        }
+
+        function renderChart(chartData) {
+            if (chartData && Object.keys(chartData).length > 0) {
+                currentChartData = chartData;
+
+                const bubble = document.createElement("div");
+                bubble.className = "chart-bubble";
+
+                const canvas = document.createElement("canvas");
+                bubble.appendChild(canvas);
+                chat.appendChild(bubble);
+                chat.scrollTop = chat.scrollHeight;
+
+                new Chart(canvas.getContext("2d"), {
+                    type: chartData.type,
+                    data: chartData.data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: getChartColors() }
+                            }
+                        },
+                        scales: chartData.type !== 'pie' && chartData.type !== 'doughnut' ? {
+                            x: { ticks: { color: getChartColors() } },
+                            y: { ticks: { color: getChartColors() } }
+                        } : {}
+                    }
+                });
+
+                bubble.addEventListener("click", () => openChartModal());
+            }
+        }
+
+        function getChartColors() {
+            const isDark = document.body.classList.contains('dark-mode');
+            return isDark ? '#e9edef' : '#111111';
         }
 
         async function sendMessage() {
@@ -264,48 +809,165 @@
             addMessage(text, "out");
             input.value = "";
 
-            addMessage("Analisando...", "in");
+            const loadingMsg = document.createElement("div");
+            loadingMsg.className = "msg msg-in";
+            loadingMsg.textContent = "Analisando...";
+            chat.appendChild(loadingMsg);
+            chat.scrollTop = chat.scrollHeight;
 
             try {
                 const response = await fetch(
-                    "https://unreproachable-hybridisable-maggie.ngrok-free.dev/conta-corrente",
+                    `${API_URL}/conta-corrente`,
                     {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ pergunta: text, tipo_conta: "conta-corrente" })
+                        body: JSON.stringify({
+                            pergunta: text,
+                            tipo_conta: "conta-corrente",
+                            conversation_id: currentConversationId
+                        })
                     }
                 );
 
                 const data = await response.json();
+                loadingMsg.remove();
 
-                chat.lastChild.remove(); // remove "analisando..."
-                addMessage(data.analise_texto || "Sem resposta.");
+                // Update current conversation ID if it was a new chat
+                if (!currentConversationId && data.conversation_id) {
+                    currentConversationId = data.conversation_id;
+                    loadConversations(); // Refresh sidebar to show new chat
+                }
+
+                addMessage(data.analise_texto || "Sem resposta.", "in");
+
+                if (data.grafico && Object.keys(data.grafico).length > 0) {
+                    renderChart(data.grafico);
+                }
             } catch (e) {
-                chat.lastChild.remove();
-                addMessage("Erro ao consultar API.");
+                loadingMsg.remove();
+                addMessage("Erro ao consultar API.", "in");
+                console.error(e);
             }
         }
 
-        // Enter envia mensagem
+        function openChartModal() {
+            if (!currentChartData) return;
+
+            modal.style.display = "flex";
+
+            const ctx = document.getElementById("fullscreenChart").getContext("2d");
+
+            if (fullscreenChartInstance) {
+                fullscreenChartInstance.destroy();
+            }
+
+            fullscreenChartInstance = new Chart(ctx, {
+                type: currentChartData.type,
+                data: currentChartData.data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: getChartColors(), font: { size: 14 } }
+                        }
+                    },
+                    scales: currentChartData.type !== 'pie' && currentChartData.type !== 'doughnut' ? {
+                        x: { ticks: { color: getChartColors() } },
+                        y: { ticks: { color: getChartColors() } }
+                    } : {}
+                }
+            });
+        }
+
+        function closeChartModal() {
+            modal.style.display = "none";
+            if (fullscreenChartInstance) {
+                fullscreenChartInstance.destroy();
+                fullscreenChartInstance = null;
+            }
+        }
+
+        closeModalBtn.addEventListener("click", closeChartModal);
+
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) closeChartModal();
+        });
+
+        downloadBtn.addEventListener("click", () => {
+            const canvas = document.getElementById("fullscreenChart");
+            const isDark = document.body.classList.contains('dark-mode');
+            const bgColor = isDark ? '#202c33' : '#ffffff';
+
+            const tmpCanvas = document.createElement("canvas");
+            const ctx = tmpCanvas.getContext("2d");
+            tmpCanvas.width = canvas.width;
+            tmpCanvas.height = canvas.height;
+
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, tmpCanvas.width, tmpCanvas.height);
+            ctx.drawImage(canvas, 0, 0);
+
+            const url = tmpCanvas.toDataURL("image/png");
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "grafico-analise-financeira.png";
+            a.click();
+        });
+
         input.addEventListener("keydown", (e) => {
             if (e.key === "Enter") sendMessage();
         });
 
-        // MODO ESCURO
         const toggle = document.getElementById("theme-toggle");
+
         function setTheme(mode) {
             document.body.classList.toggle("dark-mode", mode === "dark");
             localStorage.setItem("theme", mode);
         }
 
         toggle.onclick = () => {
-            const mode = document.body.classList.contains("dark-mode") ? "light" : "dark";
-            setTheme(mode);
+            const newMode = document.body.classList.contains("dark-mode") ? "light" : "dark";
+            setTheme(newMode);
         };
 
         setTheme(localStorage.getItem("theme") || "light");
-    </script>
 
+        async function renameConversation(id, currentTitle) {
+            const newTitle = prompt("Novo nome da conversa:", currentTitle);
+            if (newTitle && newTitle !== currentTitle) {
+                try {
+                    await fetch(`${API_URL}/conversations/${id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title: newTitle })
+                    });
+                    loadConversations();
+                } catch (e) {
+                    console.error("Failed to rename conversation", e);
+                    alert("Erro ao renomear conversa.");
+                }
+            }
+        }
+
+        async function deleteConversation(id) {
+            if (confirm("Tem certeza que deseja excluir esta conversa?")) {
+                try {
+                    await fetch(`${API_URL}/conversations/${id}`, {
+                        method: 'DELETE'
+                    });
+                    if (currentConversationId === id) {
+                        startNewChat();
+                    } else {
+                        loadConversations();
+                    }
+                } catch (e) {
+                    console.error("Failed to delete conversation", e);
+                    alert("Erro ao excluir conversa.");
+                }
+            }
+        }
+    </script>
 </body>
 
 </html>
