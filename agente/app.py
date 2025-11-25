@@ -8,6 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+
+
 from google import genai
 from google.genai import types
 from io import BytesIO
@@ -119,12 +121,9 @@ def get_conversations():
 def create_conversation():
     id = database.create_conversation("Nova Conversa")
     conversations = database.get_conversations()
-    # Assuming the last one is the new one, or just returning a placeholder to satisfy the model if the original code was broken.
-    # I'll try to find the created conversation.
     for c in conversations:
-        if c['id'] == id: # Assuming dictionary or object
+        if c['id'] == id:
              return c
-    # Fallback if not found (should not happen)
     return {"id": id, "title": "Nova Conversa", "created_at": ""}
 
 @app.patch("/conversations/{conversation_id}")
@@ -150,44 +149,68 @@ def get_messages(conversation_id: int):
 @app.post("/tts")
 def text_to_speech(request: TTSRequest):
     try:
+        print(f"🎵 TTS Request - Text: '{request.text[:50]}...', Voice: {request.voice}")
+
+        # Instancia o cliente do NOVO SDK
         client = genai.Client(api_key=os.getenv("IA_STUDIO"))
-        
-        # Use models.generate_content with live API configuration
-        # Gemini 2.0 Flash Experimental supports multimodal live API
+
+        # Validar voz (Puck, Charon, Kore, Fenrir, Aoede)
+        # Se a voz não for uma dessas, pode causar erro, então defina um fallback
+        valid_voices = ["Puck", "Charon", "Kore", "Fenrir", "Aoede"]
+        voice_name = request.voice if request.voice in valid_voices else "Puck"
+
         response = client.models.generate_content(
-            model="gemini-2.5-flash-preview-tts",
-            contents=request.text,
+            model="gemini-2.0-flash-exp",
+            # Dica: Às vezes, adicionar uma instrução explícita ajuda o modelo a focar no áudio
+            contents=f"Please read the following text aloud naturally: {request.text}",
             config=types.GenerateContentConfig(
                 response_modalities=["AUDIO"],
                 speech_config=types.SpeechConfig(
                     voice_config=types.VoiceConfig(
                         prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                            voice_name=request.voice
+                            voice_name=voice_name
                         )
                     )
                 )
             )
         )
-        
-        # Extract audio bytes from response
+
+        print(f"✅ Response received from Gemini")
+
+        # Extração dos dados de áudio
         if response.candidates and response.candidates[0].content.parts:
             for part in response.candidates[0].content.parts:
-                if part.inline_data and part.inline_data.data:
+                # Verifica se é dados inline (blob)
+                if part.inline_data:
                     audio_data = part.inline_data.data
-                    # Handle both string (base64) and bytes
+                    # O Gemini retorna 'audio/pcm' ou 'audio/wav' geralmente
+                    mime_type = part.inline_data.mime_type or 'audio/wav'
+                    
+                    # Se vier como string base64, decodifica. Se vier bytes, usa direto.
                     if isinstance(audio_data, str):
                         audio_bytes = base64.b64decode(audio_data)
                     else:
                         audio_bytes = audio_data
-                        
-                    return StreamingResponse(BytesIO(audio_bytes), media_type="audio/wav")
                     
-        raise Exception("No audio data generated")
+                    print(f"✅ Audio bytes ready - Size: {len(audio_bytes)} bytes")
+                        
+                    return StreamingResponse(
+                        BytesIO(audio_bytes), 
+                        media_type=mime_type,
+                        headers={
+                            "Content-Disposition": "inline; filename=tts_output.wav",
+                        }
+                    )
+        
+        print("❌ No audio data found in response")
+        raise Exception("A resposta da IA não conteve dados de áudio.")
 
     except Exception as e:
-        print(f"Error generating audio with Gemini: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
+        error_msg = str(e)
+        print(f"❌ Error generating audio: {error_msg}")
+        # ... (seu tratamento de erro existente) ...
+        raise HTTPException(status_code=500, detail=f"Erro ao gerar áudio: {error_msg}")
+        
 @app.get("/")
 def serve_frontend():
     caminho = os.path.join(os.path.dirname(__file__), "index.html")

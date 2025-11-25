@@ -68,28 +68,28 @@ def gerar_sql_agent_conta_corrente(pergunta_usuario, contexto_tabela):
 
     prompt = f"""{contexto_tabela}
 
-    Sua tarefa é converter a pergunta abaixo em uma consulta SQL para Databricks (Spark SQL) do tipo SELECT. 
+        Sua tarefa é converter a pergunta abaixo em uma consulta SQL para Databricks (Spark SQL) do tipo SELECT. 
 
-    IMPORTANTE - Regras de sintaxe do Databricks:
-    - Use DATE_FORMAT(coluna, 'formato') para formatar datas
-    - Use YEAR(coluna), MONTH(coluna), DAY(coluna) para extrair partes de datas
-    - NUNCA use STRFTIME (não existe no Databricks)
-    - Para agrupar por mês/ano: use DATE_FORMAT(data, 'yyyy-MM')
-    - Formato de data: 'yyyy-MM-dd' (não '%Y-%m-%d')
-    
-    Exemplos de conversão:
-    Errado: STRFTIME('%Y-%m', data)
-    Correto: DATE_FORMAT(data, 'yyyy-MM')
-    
-    Errado: STRFTIME('%Y', data)
-    Correto: YEAR(data)
+        IMPORTANTE - Regras de sintaxe do Databricks:
+        - Use DATE_FORMAT(coluna, 'formato') para formatar datas
+        - Use YEAR(coluna), MONTH(coluna), DAY(coluna) para extrair partes de datas
+        - NUNCA use STRFTIME (não existe no Databricks)
+        - Para agrupar por mês/ano: use DATE_FORMAT(data, 'yyyy-MM')
+        - Formato de data: 'yyyy-MM-dd' (não '%Y-%m-%d')
+        
+        Exemplos de conversão:
+        Errado: STRFTIME('%Y-%m', data)
+        Correto: DATE_FORMAT(data, 'yyyy-MM')
+        
+        Errado: STRFTIME('%Y', data)
+        Correto: YEAR(data)
 
-    - Retorne apenas o código SQL, sem explicações.
-    - Use nomes de colunas exatamente como estão no contexto.
-    - Caso haja filtros de data, considere o formato AAAA-MM-DD (yyyy-MM-dd).
+        - Retorne apenas o código SQL, sem explicações.
+        - Use nomes de colunas exatamente como estão no contexto.
+        - Caso haja filtros de data, considere o formato AAAA-MM-DD (yyyy-MM-dd).
 
-    Pergunta do usuário: {pergunta_usuario}
-    """
+        Pergunta do usuário: {pergunta_usuario}
+        """
 
     response = MODEL.generate_content(prompt)
     
@@ -100,7 +100,8 @@ def gerar_sql_agent_conta_corrente(pergunta_usuario, contexto_tabela):
     sql_query = sql_query_raw.strip().replace("```sql", "").replace("```", "").strip()
     
     # Adicione print para debug
-    print(f"📝 SQL Gerado:\n{sql_query}\n")
+    print("📝 SQL Gerado")
+    #print_logs(sql_query)
     
     return sql_query
 
@@ -131,87 +132,87 @@ def gerar_grafico_agent_visualizacao(dados_recuperados):
     print("Executando: Geração do Gráfico")
     
     prompt_agente_visualizacao = f"""
-    <ROLE>
-    Você é um especialista em visualização de dados que gera exclusivamente configurações JSON para Chart.js.
-    </ROLE>
+        <ROLE>
+        Você é um especialista em visualização de dados que gera exclusivamente configurações JSON para Chart.js.
+        </ROLE>
 
-    <DADOS>
-    {dados_recuperados}
-    </DADOS>
+        <DADOS>
+        {dados_recuperados}
+        </DADOS>
 
-    <TAREFA_PRIMARIA>
-    Analise os dados fornecidos e retorne EXCLUSIVAMENTE uma configuração JSON válida para Chart.js no formato especificado.
-    </TAREFA_PRIMARIA>
+        <TAREFA_PRIMARIA>
+        Analise os dados fornecidos e retorne EXCLUSIVAMENTE uma configuração JSON válida para Chart.js no formato especificado.
+        </TAREFA_PRIMARIA>
 
-    <FORMATO_OBRIGATORIO>
-    Sua resposta deve conter APENAS uma linha no seguinte formato exato:
-    grafico = {{"type": "TIPO", "data": {{"labels": [ARRAY_LABELS], "datasets": [{{"label": "NOME_SERIE", "data": [ARRAY_VALORES]}}]}}}}
+        <FORMATO_OBRIGATORIO>
+        Sua resposta deve conter APENAS uma linha no seguinte formato exato:
+        grafico = {{"type": "TIPO", "data": {{"labels": [ARRAY_LABELS], "datasets": [{{"label": "NOME_SERIE", "data": [ARRAY_VALORES]}}]}}}}
 
-    Onde:
-    - TIPO: "bar", "line", "pie", ou "scatter"
-    - ARRAY_LABELS: array com strings das chaves/categorias dos dados
-    - NOME_SERIE: nome descritivo para a série de dados
-    - ARRAY_VALORES: array com valores numéricos extraídos dos dados
-    </FORMATO_OBRIGATORIO>
+        Onde:
+        - TIPO: "bar", "line", "pie", ou "scatter"
+        - ARRAY_LABELS: array com strings das chaves/categorias dos dados
+        - NOME_SERIE: nome descritivo para a série de dados
+        - ARRAY_VALORES: array com valores numéricos extraídos dos dados
+        </FORMATO_OBRIGATORIO>
 
-    <REGRAS_CRITICAS>
-    PROIBIDO:
-    - Código Python (import, print, loops, variáveis, etc.)
-    - Comentários ou explicações
-    - Múltiplas linhas de resposta
-    - Propriedades CSS/visuais (backgroundColor, borderColor, etc.)
-    - Texto antes ou depois da linha "grafico = "
-    - Usar aspas simples (use apenas aspas duplas)
-    - Quebras de linha no JSON
+        <REGRAS_CRITICAS>
+        PROIBIDO:
+        - Código Python (import, print, loops, variáveis, etc.)
+        - Comentários ou explicações
+        - Múltiplas linhas de resposta
+        - Propriedades CSS/visuais (backgroundColor, borderColor, etc.)
+        - Texto antes ou depois da linha "grafico = "
+        - Usar aspas simples (use apenas aspas duplas)
+        - Quebras de linha no JSON
 
-    OBRIGATÓRIO:
-    - Resposta de uma única linha
-    - JSON válido e bem formatado
-    - Começar com "grafico = "
-    - Usar apenas aspas duplas no JSON
-    - Converter valores Decimal para números
-    - Escolher tipo de gráfico apropriado aos dados
-    </REGRAS_CRITICAS>
+        OBRIGATÓRIO:
+        - Resposta de uma única linha
+        - JSON válido e bem formatado
+        - Começar com "grafico = "
+        - Usar apenas aspas duplas no JSON
+        - Converter valores Decimal para números
+        - Escolher tipo de gráfico apropriado aos dados
+        </REGRAS_CRITICAS>
 
-    <SELECAO_TIPO_GRAFICO>
-    - bar: Para comparações categóricas (padrão para a maioria dos casos)
-    - line: Para dados temporais/sequenciais com tendências
-    - pie: Para proporções de um total (máximo 6 categorias)
-    - scatter: Para correlações entre duas variáveis numéricas
-    </SELECAO_TIPO_GRAFICO>
+        <SELECAO_TIPO_GRAFICO>
+        - bar: Para comparações categóricas (padrão para a maioria dos casos)
+        - line: Para dados temporais/sequenciais com tendências
+        - pie: Para proporções de um total (máximo 6 categorias)
+        - scatter: Para correlações entre duas variáveis numéricas
+        </SELECAO_TIPO_GRAFICO>
 
-    <EXEMPLOS_CORRETOS>
-    Dados: [{{'categoria': 'A', 'valor': 10}}, {{'categoria': 'B', 'valor': 20}}]
-    Saída: grafico = {{"type": "bar", "data": {{"labels": ["A", "B"], "datasets": [{{"label": "Valor", "data": [10, 20]}}]}}}}
+        <EXEMPLOS_CORRETOS>
+        Dados: [{{'categoria': 'A', 'valor': 10}}, {{'categoria': 'B', 'valor': 20}}]
+        Saída: grafico = {{"type": "bar", "data": {{"labels": ["A", "B"], "datasets": [{{"label": "Valor", "data": [10, 20]}}]}}}}
 
-    Dados: [{{'mes': '2025-01', 'vendas': 100}}, {{'mes': '2025-02', 'vendas': 150}}]
-    Saída: grafico = {{"type": "line", "data": {{"labels": ["2025-01", "2025-02"], "datasets": [{{"label": "Vendas", "data": [100, 150]}}]}}}}
-    </EXEMPLOS_CORRETOS>
+        Dados: [{{'mes': '2025-01', 'vendas': 100}}, {{'mes': '2025-02', 'vendas': 150}}]
+        Saída: grafico = {{"type": "line", "data": {{"labels": ["2025-01", "2025-02"], "datasets": [{{"label": "Vendas", "data": [100, 150]}}]}}}}
+        </EXEMPLOS_CORRETOS>
 
-    <EXEMPLO_INCORRETO>
-    NÃO FAÇA ISSO:
-    ```python
-    dados = [...]
-    labels = [...]
-    # Comentário
-    print("grafico = " + json.dumps(...))
-    ```
-    </EXEMPLO_INCORRETO>
+        <EXEMPLO_INCORRETO>
+        NÃO FAÇA ISSO:
+        ```python
+        dados = [...]
+        labels = [...]
+        # Comentário
+        print("grafico = " + json.dumps(...))
+        ```
+        </EXEMPLO_INCORRETO>
 
-    <VALIDACAO_FINAL>
-    Antes de responder, verifique:
-    1. ✓ Resposta é uma única linha?
-    2. ✓ Começa com "grafico = "?
-    3. ✓ JSON usa apenas aspas duplas?
-    4. ✓ Não há código Python?
-    5. ✓ Valores numéricos estão convertidos de Decimal?
-    6. ✓ Tipo de gráfico é apropriado?
-    </VALIDACAO_FINAL>
+        <VALIDACAO_FINAL>
+        Antes de responder, verifique:
+        1. ✓ Resposta é uma única linha?
+        2. ✓ Começa com "grafico = "?
+        3. ✓ JSON usa apenas aspas duplas?
+        4. ✓ Não há código Python?
+        5. ✓ Valores numéricos estão convertidos de Decimal?
+        6. ✓ Tipo de gráfico é apropriado?
+        </VALIDACAO_FINAL>
 
-    <INSTRUCAO_FINAL>
-    RESPONDA AGORA com apenas a linha de configuração JSON, seguindo rigorosamente o formato especificado.
-    </INSTRUCAO_FINAL>
-    """
+        <INSTRUCAO_FINAL>
+        RESPONDA AGORA com apenas a linha de configuração JSON, seguindo rigorosamente o formato especificado.
+        </INSTRUCAO_FINAL>
+        """
     
     response_visualizacao = MODEL.generate_content(prompt_agente_visualizacao)
     code_vizualizacao = "".join(part.text for part in response_visualizacao.parts)
@@ -219,7 +220,7 @@ def gerar_grafico_agent_visualizacao(dados_recuperados):
     # Remove blocos de markdown se existirem
     code_vizualizacao = code_vizualizacao.replace("```json", "").replace("```", "").strip()
 
-    print(code_vizualizacao)
+    # print_logs(code_vizualizacao)
 
     # Extrai apenas o JSON após 'grafico ='
     match = re.search(r"grafico\s*=\s*(\{.*\})", code_vizualizacao, re.DOTALL)
@@ -272,8 +273,10 @@ def gerar_anase_agent_negocios(dados_recuperados, contexto_tabela, pergunta_usua
         
     response = MODEL.generate_content(prompt_analise)
 
-    print(response)
+    #print_logs(response)
 
     return "".join(part.text for part in response.parts).strip()
 
 
+def print_logs(msg):
+    return print(msg)
