@@ -620,3 +620,59 @@ body.dark-mode .voice-select option {
     background: var(--input-bg-dark);
     color: var(--text-dark);
 }
+
+/* Audio Loading and Error States */
+.audio-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.audio-error {
+    color: #ff4444 !important;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+.audio-error-toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #ff4444;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    font-size: 14px;
+    animation: slideUp 0.3s ease-out;
+}
+
+.audio-error-toast.fade-out {
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+@keyframes slideUp {
+    from {
+        bottom: 60px;
+        opacity: 0;
+    }
+
+    to {
+        bottom: 80px;
+        opacity: 1;
+    }
+}

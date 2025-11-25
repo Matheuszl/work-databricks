@@ -8,13 +8,13 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-
-
 from google import genai
 from google.genai import types
 from io import BytesIO
 from dotenv import load_dotenv
 import base64
+import wave
+import time
 
 load_dotenv()
 
@@ -151,66 +151,91 @@ def text_to_speech(request: TTSRequest):
     try:
         print(f"🎵 TTS Request - Text: '{request.text[:50]}...', Voice: {request.voice}")
 
-        # Instancia o cliente do NOVO SDK
         client = genai.Client(api_key=os.getenv("IA_STUDIO"))
 
-        # Validar voz (Puck, Charon, Kore, Fenrir, Aoede)
-        # Se a voz não for uma dessas, pode causar erro, então defina um fallback
+        # Validação da voz
         valid_voices = ["Puck", "Charon", "Kore", "Fenrir", "Aoede"]
         voice_name = request.voice if request.voice in valid_voices else "Puck"
 
-        response = client.models.generate_content(
-            model="gemini-2.0-flash-exp",
-            # Dica: Às vezes, adicionar uma instrução explícita ajuda o modelo a focar no áudio
-            contents=f"Please read the following text aloud naturally: {request.text}",
-            config=types.GenerateContentConfig(
-                response_modalities=["AUDIO"],
-                speech_config=types.SpeechConfig(
-                    voice_config=types.VoiceConfig(
-                        prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                            voice_name=voice_name
+        max_retries = 3
+        retry_delay = 2
+
+        for attempt in range(max_retries):
+            try:
+                print(f"Gerando áudio (Tentativa {attempt + 1}/{max_retries})...")
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash-preview-tts',
+                    contents=[
+                        types.Content(
+                            parts=[
+                                types.Part(text=request.text)
+                            ]
+                        )
+                    ],
+                    config=types.GenerateContentConfig(
+                        response_modalities=['AUDIO'],
+                        speech_config=types.SpeechConfig(
+                            voice_config=types.VoiceConfig(
+                                prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                                    voice_name=voice_name
+                                )
+                            )
                         )
                     )
                 )
-            )
-        )
 
-        print(f"✅ Response received from Gemini")
+                print(f"✅ Response received from Gemini")
 
-        # Extração dos dados de áudio
-        if response.candidates and response.candidates[0].content.parts:
-            for part in response.candidates[0].content.parts:
-                # Verifica se é dados inline (blob)
-                if part.inline_data:
-                    audio_data = part.inline_data.data
-                    # O Gemini retorna 'audio/pcm' ou 'audio/wav' geralmente
-                    mime_type = part.inline_data.mime_type or 'audio/wav'
-                    
-                    # Se vier como string base64, decodifica. Se vier bytes, usa direto.
-                    if isinstance(audio_data, str):
-                        audio_bytes = base64.b64decode(audio_data)
-                    else:
-                        audio_bytes = audio_data
-                    
-                    print(f"✅ Audio bytes ready - Size: {len(audio_bytes)} bytes")
-                        
-                    return StreamingResponse(
-                        BytesIO(audio_bytes), 
-                        media_type=mime_type,
-                        headers={
-                            "Content-Disposition": "inline; filename=tts_output.wav",
-                        }
-                    )
-        
-        print("❌ No audio data found in response")
-        raise Exception("A resposta da IA não conteve dados de áudio.")
+                if response.candidates and response.candidates[0].content.parts:
+                    for part in response.candidates[0].content.parts:
+                        if part.inline_data:
+                            # 1. Pegamos os dados crus (PCM)
+                            raw_audio_data = part.inline_data.data 
+                            
+                            print(f"MIME Type recebido: {part.inline_data.mime_type}")
+                            
+                            # 2. Configurações baseadas no retorno 'audio/L16;codec=pcm;rate=24000'
+                            # L16 = 16 bits = 2 bytes
+                            # Rate = 24000
+                            
+                            # 3. Usamos a biblioteca wave para criar o cabeçalho correto em memória
+                            wav_buffer = BytesIO()
+                            with wave.open(wav_buffer, "wb") as wav_file:
+                                wav_file.setnchannels(1)      # Geralmente é Mono (1 canal)
+                                wav_file.setsampwidth(2)      # 2 bytes (16 bits)
+                                wav_file.setframerate(24000)  # Taxa de amostragem de 24kHz
+                                wav_file.writeframes(raw_audio_data)
+                            
+                            wav_buffer.seek(0)
+                            print(f"✅ Áudio encapsulado corretamente (WAV) - Size: {wav_buffer.getbuffer().nbytes} bytes")
+                                
+                            return StreamingResponse(
+                                wav_buffer, 
+                                media_type="audio/wav",
+                                headers={
+                                    "Content-Disposition": "inline; filename=tts_output.wav",
+                                }
+                            )
+                
+                print("❌ No audio data found in response")
+                raise Exception("A resposta da IA não conteve dados de áudio.")
+
+            except Exception as e:
+                error_str = str(e)
+                if "503" in error_str or "overloaded" in error_str.lower():
+                    if attempt < max_retries - 1:
+                        print(f"⚠️ Modelo sobrecarregado. Tentando novamente em {retry_delay}s...")
+                        time.sleep(retry_delay)
+                        retry_delay *= 2
+                        continue
+                raise e
 
     except Exception as e:
         error_msg = str(e)
         print(f"❌ Error generating audio: {error_msg}")
-        # ... (seu tratamento de erro existente) ...
-        raise HTTPException(status_code=500, detail=f"Erro ao gerar áudio: {error_msg}")
-        
+        raise HTTPException(status_code=500, detail=f"Erro no Gemini: {error_msg}")      
+
+
 @app.get("/")
 def serve_frontend():
     caminho = os.path.join(os.path.dirname(__file__), "index.html")
