@@ -367,7 +367,7 @@ body.dark-mode .msg-out {
     padding: 10px;
     border-radius: 12px;
     margin: 8px 0;
-    max-width: 65%;
+    max-width: 85%;
     align-self: flex-start;
     cursor: pointer;
     transition: transform 0.2s;
@@ -384,7 +384,7 @@ body.dark-mode .chart-bubble {
 
 .chart-bubble canvas {
     width: 100% !important;
-    height: 250px !important;
+    height: 400px !important;
     border-radius: 8px;
 }
 
@@ -582,22 +582,34 @@ body.dark-mode .close-chart {
     transition: opacity 0.2s;
     color: inherit;
 }
+
 .audio-btn:hover {
     opacity: 1;
 }
+
 .audio-btn svg {
     width: 18px;
     height: 18px;
     fill: currentColor;
 }
+
 .audio-playing {
     animation: pulse 1s infinite;
     color: var(--wa-green);
 }
+
 @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 .voice-select {

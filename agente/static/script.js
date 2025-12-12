@@ -10,6 +10,9 @@ let currentConversationId = null;
 
 const API_URL = "https://unreproachable-hybridisable-maggie.ngrok-free.dev";
 
+// Register the datalabels plugin
+Chart.register(ChartDataLabels);
+
 loadConversations();
 
 async function loadConversations() {
@@ -135,7 +138,10 @@ async function playAudio(text, btn) {
     btn.title = "Carregando áudio...";
 
     try {
-        const voice = document.getElementById('voiceSelect').value;
+        // Para alterar a voz manualmente, mude o valor abaixo.
+        // Opções disponíveis: "Puck", "Charon", "Kore", "Fenrir", "Aoede"
+        const voice = "Kore";
+        // const voice = document.getElementById('voiceSelect').value; // Antiga seleção via UI
         const response = await fetch(`${API_URL}/tts`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -193,7 +199,8 @@ async function playAudio(text, btn) {
 
 function renderChart(chartData) {
     if (chartData && Object.keys(chartData).length > 0) {
-        currentChartData = chartData;
+        // currentChartData = chartData; // Removed global overwrite
+
 
         const bubble = document.createElement("div");
         bubble.className = "chart-bubble";
@@ -212,6 +219,17 @@ function renderChart(chartData) {
                 plugins: {
                     legend: {
                         labels: { color: getChartColors() }
+                    },
+                    datalabels: {
+                        color: '#fff',
+                        backgroundColor: (context) => {
+                            const bg = context.dataset.backgroundColor;
+                            return Array.isArray(bg) ? bg[context.dataIndex] : bg;
+                        },
+                        borderRadius: 4,
+                        padding: 4,
+                        font: { weight: 'bold' },
+                        display: 'auto'
                     }
                 },
                 scales: chartData.type !== 'pie' && chartData.type !== 'doughnut' ? {
@@ -221,7 +239,7 @@ function renderChart(chartData) {
             }
         });
 
-        bubble.addEventListener("click", () => openChartModal());
+        bubble.addEventListener("click", () => openChartModal(chartData));
     }
 }
 
@@ -277,8 +295,9 @@ async function sendMessage() {
     }
 }
 
-function openChartModal() {
-    if (!currentChartData) return;
+function openChartModal(chartData) {
+    if (!chartData) return;
+    currentChartData = chartData; // Update global for potential other uses (like download if it used it)
 
     modal.style.display = "flex";
 
@@ -297,6 +316,17 @@ function openChartModal() {
             plugins: {
                 legend: {
                     labels: { color: getChartColors(), font: { size: 14 } }
+                },
+                datalabels: {
+                    color: '#fff',
+                    backgroundColor: (context) => {
+                        const bg = context.dataset.backgroundColor;
+                        return Array.isArray(bg) ? bg[context.dataIndex] : bg;
+                    },
+                    borderRadius: 4,
+                    padding: 6,
+                    font: { weight: 'bold', size: 14 },
+                    display: 'auto'
                 }
             },
             scales: currentChartData.type !== 'pie' && currentChartData.type !== 'doughnut' ? {
