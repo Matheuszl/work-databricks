@@ -6,6 +6,7 @@ __pycache__/
 architecture.excalidraw
 features.txt
 virtual_env.txt
+chat_history.db
 
 ingestao_local/
 databricks_lake.py
@@ -15,7 +16,7 @@ agente/chat_history.db
 
 # C extensions
 *.so
-
+.db
 .csv
 
 # Distribution / packaging
@@ -207,4 +208,7 @@ cython_debug/
 
 # Database files
 *.db
+agente/chat_history.db
+agente/chat_history.db
+agente/chat_history.db
 agente/chat_history.db
