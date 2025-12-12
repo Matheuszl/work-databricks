@@ -207,3 +207,4 @@ cython_debug/
 
 # Database files
 *.db
+agente/chat_history.db
